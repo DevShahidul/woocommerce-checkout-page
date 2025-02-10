@@ -63,39 +63,80 @@ function ajax_add_single_product() {
     wp_send_json_success();
 }
 
-// Add AJAX handler for adding to cart
-function handle_ajax_add_to_cart() {
-    check_ajax_referer('add-to-cart-nonce', 'nonce');
+// // Add AJAX handler for adding to cart
+// function handle_ajax_add_to_cart() {
+//     check_ajax_referer('add-to-cart-nonce', 'nonce');
 
-    $product_id = isset($_POST['product_id']) ? absint($_POST['product_id']) : 0;
-    $quantity = isset($_POST['quantity']) ? absint($_POST['quantity']) : 1;
+//     $product_id = isset($_POST['product_id']) ? absint($_POST['product_id']) : 0;
+//     $quantity = isset($_POST['quantity']) ? absint($_POST['quantity']) : 1;
 
-    if ($product_id > 0) {
-        $added = WC()->cart->add_to_cart($product_id, $quantity);
-        if ($added) {
-            $data = array(
-                'success' => true,
-                'message' => __('Passport Type Selected!', 'woocommerce'),
-                'cart_count' => WC()->cart->get_cart_contents_count(),
-                'cart_total' => WC()->cart->get_cart_total()
-            );
-        } else {
-            $data = array(
-                'success' => false,
-                'message' => __('Failed to select Passport Type.', 'woocommerce')
-            );
-        }
-    } else {
-        $data = array(
-            'success' => false,
-            'message' => __('Invalid Passport Type.', 'woocommerce')
-        );
+//     if ($product_id > 0) {
+//         $added = WC()->cart->add_to_cart($product_id, $quantity);
+//         if ($added) {
+//             $data = array(
+//                 'success' => true,
+//                 'message' => __('Passport Type Selected!', 'woocommerce'),
+//                 'cart_count' => WC()->cart->get_cart_contents_count(),
+//                 'cart_total' => WC()->cart->get_cart_total()
+//             );
+//         } else {
+//             $data = array(
+//                 'success' => false,
+//                 'message' => __('Failed to select Passport Type.', 'woocommerce')
+//             );
+//         }
+//     } else {
+//         $data = array(
+//             'success' => false,
+//             'message' => __('Invalid Passport Type.', 'woocommerce')
+//         );
+//     }
+
+//     wp_send_json($data);
+// }
+// add_action('wp_ajax_add_to_cart_ajax', 'handle_ajax_add_to_cart');
+// add_action('wp_ajax_nopriv_add_to_cart_ajax', 'handle_ajax_add_to_cart');
+
+// // Add AJAX handler for update checkout order summary
+// add_action('wp_ajax_update_checkout_product', 'ajax_update_checkout_product');
+// add_action('wp_ajax_nopriv_update_checkout_product', 'ajax_update_checkout_product');
+// function ajax_update_checkout_product() {
+//     // Sanitize and validate product ID
+//     $product_id = intval($_POST['product_id']);
+    
+//     // Empty existing cart
+//     WC()->cart->empty_cart();
+    
+//     // Add new product
+//     WC()->cart->add_to_cart($product_id, 1);
+    
+//     // Send success response
+//     wp_send_json_success();
+// }
+
+add_action('wp_ajax_get_product_details', 'ajax_get_product_details');
+add_action('wp_ajax_nopriv_get_product_details', 'ajax_get_product_details');
+function ajax_get_product_details() {
+    $product_id = intval($_POST['product_id']);
+    $product = wc_get_product($product_id);
+
+    if (!$product) {
+        wp_send_json_error('Product not found');
     }
 
-    wp_send_json($data);
+    // Empty cart and add new product
+    WC()->cart->empty_cart();
+    WC()->cart->add_to_cart($product_id, 1);
+
+    // Prepare product data
+    $response = [
+        'name' => $product->get_name(),
+        'price_html' => $product->get_price_html(), // Uses WooCommerce currency formatting
+        'id' => $product_id
+    ];
+
+    wp_send_json_success($response);
 }
-add_action('wp_ajax_add_to_cart_ajax', 'handle_ajax_add_to_cart');
-add_action('wp_ajax_nopriv_add_to_cart_ajax', 'handle_ajax_add_to_cart');
 
 // Enqueue necessary scripts and styles
 function enqueue_product_selector_scripts() {

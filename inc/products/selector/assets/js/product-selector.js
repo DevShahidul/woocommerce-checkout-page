@@ -14,6 +14,21 @@ jQuery(function($) {
        const productId = $(this).val();
 
        if(productId){
+        const price = $selected.data('price');
+        const name = $selected.text();
+
+        // Update order summary front end
+        $('.order-summary-item.product-info').html(`
+            <span class="item-name">${name}</span>
+            <span class="item-price">
+                <span class="woocommerce-Price-amount amount">
+                ${price.toFixed(2)}
+                </span>
+            </span>
+            `
+        );
+        $('.woocommerce-Price-currencySymbol').first().text() + price.toFixed(2)
+
         $.ajax({
             url: wc_checkout_params.ajax_url,
             type: 'POST',
@@ -31,14 +46,38 @@ jQuery(function($) {
                     },
                     success: function(response) {
                         if (response.success) {
-                            // Trigger update of checkout fragments
-                            $(document.body).trigger('update_checkout');
+                            // Update order summary
+                            $.ajax({
+                                url: wc_checkout_params.ajax_url,
+                                type: 'POST',
+                                data: {
+                                    action: 'update_checkout_product',
+                                    product_id: productId
+                                },
+                                success: function(response) {
+                                    if (response.success) {
+                                        // Trigger WooCommerce to update checkout fragments
+                                        updateOrderSummary(response.data);
+                                        $(document.body).trigger('update_checkout');
+                                    }else {
+                                        console.log('Product update failed');
+                                    }
+                                },
+                                error: function() {
+                                    console.log('Error occurred. Please try again.');
+                                }
+                            });
                         }
+                    },
+                    error: function() {
+                        console.log('AJAX request failed.');
                     }
                 });
             }
         });
        }
+
+       
        
     //    if (productId) {
     //        const price = $selected.data('price');
@@ -61,6 +100,37 @@ jQuery(function($) {
     //        $details.slideUp();
     //    }
    });
+
+    // Update order summary
+   function updateOrderSummary(productData) {
+        const $productInfo = $(".order-summary-item.product-info");
+        // Update product name
+        $productInfo.find('.item-name').text(productData.name);
+        
+        // Update price with WooCommerce formatting
+        $('.item-price').html(productData.price_html);
+        
+        // Update cart subtotal
+        $('.subtotal-amount .woocommerce-Price-amount').html(productData.price_html);
+        
+        // Optional: Update cart quantity
+        $('.product-quantity').text('1');
+
+        $.ajax({
+            url: checkoutData.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'update_cart_totals',
+                nonce: checkoutData.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('.subtotal-amount').html(response.data.subtotal);
+                    $('.total-amount').html(response.data.total);
+                }
+            }
+        });
+    }
 
 //    // Handle add to cart
 //    $addButton.on('click', function() {

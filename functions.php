@@ -39,8 +39,8 @@ function setup_woocommerce_support() {
     }
 }
 
-
 if ( class_exists( 'WooCommerce' ) ) {
+    require get_stylesheet_directory() . '/inc/prevent-redirect-cart.php';
     require get_stylesheet_directory() . '/inc/products/products.php';
     require get_stylesheet_directory() . '/inc/products/selector/product-selector.php';
 	require get_stylesheet_directory() . '/inc/woocommerce.php';
