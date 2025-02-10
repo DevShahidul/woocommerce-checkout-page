@@ -1,5 +1,5 @@
 <?php
-// Bypass Empty Cart Restriction
+// // Bypass Empty Cart Restriction
 add_filter('woocommerce_checkout_redirect_empty_cart', '__return_false');
 
 // Custom Checkout Access Function
@@ -19,9 +19,6 @@ function allow_empty_cart_checkout() {
     }
 }
 
-// Remove Cart Validation
-add_filter('woocommerce_checkout_cart_empty', '__return_false');
-
 // Custom Routing for Empty Cart Checkout
 add_filter('woocommerce_is_checkout', 'custom_is_checkout_with_empty_cart');
 function custom_is_checkout_with_empty_cart($is_checkout) {
@@ -38,6 +35,13 @@ function regenerate_woocommerce_session() {
     }
 }
 
+// function start_woocommerce_session() {
+//     if (!WC()->session->has_session()) {
+//         WC()->session->set_customer_session_cookie(true);
+//     }
+// }
+// add_action('init', 'start_woocommerce_session', 10);
+
 add_action('init', 'custom_woocommerce_session_management');
 function custom_woocommerce_session_management() {
     // Extend session lifetime
@@ -45,12 +49,19 @@ function custom_woocommerce_session_management() {
         return 30 * DAY_IN_SECONDS;
     });
 
+
+    // Remove Cart Validation
+    add_filter('woocommerce_checkout_cart_empty', '__return_false');
+
     // Prevent cart destruction
     add_filter('woocommerce_delete_cart_after_logout', '__return_false');
     
     // Enable persistent cart
     add_filter('woocommerce_persistent_cart_enabled', '__return_true');
+    add_filter( 'woocommerce_enable_guest_checkout', '__return_true' );
+    add_filter( 'woocommerce_cart_needs_payment', '__return_false' );
 }
+
 
 // // Custom notices for empty cart scenarios
 // add_action('woocommerce_before_checkout_form', 'display_empty_cart_product_selector');
