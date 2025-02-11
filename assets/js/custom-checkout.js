@@ -23,6 +23,17 @@ jQuery(document).ready(function($) {
         updateStepVisibility();
     });
 
+    // Showing Place holder for cart update
+    function showPreloader() {
+        $('.order-summary').addClass('loading');
+        $('.preloader-overlay').addClass('active');
+    }
+    // hiding Place holder
+    function hidePreloader() {
+        $('.order-summary').removeClass('loading');
+        $('.preloader-overlay').removeClass('active');
+    }
+
     function setupCheckoutSteps() {
         // Add step navigation
         $('.checkout-step').hide();
@@ -153,6 +164,8 @@ jQuery(document).ready(function($) {
     }
 
     function updateOrderSummary() {
+        showPreloader(); // Show during updates
+
         // Update applicant name
         var firstName = $('#applicant_first_name').val() || '';
         var lastName = $('#applicant_last_name').val() || '';
@@ -198,6 +211,25 @@ jQuery(document).ready(function($) {
         }
         
         updateCartTotals(addonsTotal);
+
+         // Wrap your existing AJAX call
+        $.ajax({
+            url: checkoutData.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'update_cart_totals',
+                addons_total: addonsTotal,
+                delivery_price: deliveryPrice,
+                nonce: checkoutData.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('.subtotal-amount').html(response.data.subtotal);
+                    $('.total-amount').html(response.data.total);
+                }
+            },
+            complete: hidePreloader // Hide after totals update
+        });
     }
 
     function formatPrice(price) {
@@ -229,12 +261,22 @@ jQuery(document).ready(function($) {
         });
     }
 
+    const debouncedUpdate = _.debounce(updateOrderSummary, 300);
+    $('#applicant_first_name, #applicant_last_name').on('change', function() {
+        showPreloader();
+        debouncedUpdate();
+    });
+
     // Add to existing event listeners
-    $('#applicant_first_name, #applicant_last_name').on('change', updateOrderSummary);
+    // $('#applicant_first_name, #applicant_last_name').on('change', updateOrderSummary);
+
+
     $('input[name="acf_delivery_speed"]').on('change', updateOrderSummary);
 
     // Handle delivery speed selection
     $('input[name="acf_delivery_speed"]').on('change', function() {
+        showPreloader(); // Activate preloader
+
         var selectedOption = $(this).val().split(' - ');
         var price = parseFloat(selectedOption[1]);
         
@@ -253,12 +295,14 @@ jQuery(document).ready(function($) {
                     $('.total-amount').html(response.data.new_total);
                     updateOrderSummary();
                 }
+            },
+            complete: hidePreloader, // Hide on complete
+            error: function() {
+                hidePreloader();
+                console.error('Delivery update failed');
             }
         });
     });
-
-    // Your checkout page JavaScript will go here
-    console.log('Custom checkout script loaded');
 
     // Example: Handle optional add-ons
     $('.addon-button').on('click', function() {
@@ -286,6 +330,8 @@ jQuery(document).ready(function($) {
 
     // Handle optional add-ons
     $('.addon-checkbox').on('change', function() {
+        showPreloader(); // Activate preloader
+
         var $checkbox = $(this);
         var addonId = $checkbox.data('addon-id');
         var addonTitle = $checkbox.data('addon-title');
@@ -303,6 +349,27 @@ jQuery(document).ready(function($) {
             $('#addon-input-' + addonId).remove();
         }
         
-        updateOrderSummary();
+        // Debounce the update
+        clearTimeout(window.addonDebounce);
+        window.addonDebounce = setTimeout(function() {
+            $.ajax({
+                url: checkoutData.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'update_addons',
+                    addon_id: addonId,
+                    is_checked: $checkbox.is(':checked'),
+                    nonce: checkoutData.nonce
+                },
+                success: function() {
+                    updateOrderSummary();
+                },
+                complete: hidePreloader, // Hide on complete
+                error: function() {
+                    hidePreloader();
+                    console.error('Addon update failed');
+                }
+            });
+        }, 300);
     });
 });

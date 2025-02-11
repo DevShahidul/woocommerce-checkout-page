@@ -117,7 +117,7 @@ if (!$checkout->is_registration_enabled() && $checkout->is_registration_required
             <div class="order-summary">
                 <div class="preloader-overlay" aria-hidden="true">
                     <div class="loading-spinner"></div>
-                    <span class="screen-reader-text"><?php _e('Loading...', 'woocommerce'); ?></span>
+                    <span class="screen-reader-text"><?php _e('Updating cart...', 'woocommerce'); ?></span>
                 </div>
                 <h3><?php esc_html_e('Order Summary', 'woocommerce'); ?></h3>
                 <?php do_action('woocommerce_checkout_before_order_review'); ?>
