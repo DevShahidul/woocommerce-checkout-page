@@ -19,26 +19,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-do_action( 'woocommerce_before_checkout_form', $checkout );
+// Before checkout form hook
+do_action('woocommerce_before_checkout_form', $checkout);
 
-// Remove coupon form
-remove_action('woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10);
-
-// If checkout registration is disabled and not logged in, the user cannot checkout.
-if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_required() && ! is_user_logged_in() ) {
-	echo esc_html( apply_filters( 'woocommerce_checkout_must_be_logged_in_message', __( 'You must be logged in to checkout.', 'woocommerce' ) ) );
+// If checkout registration is disabled and not logged in, the user cannot checkout
+if (!$checkout->is_registration_enabled() && $checkout->is_registration_required() && !is_user_logged_in()) {
+	echo esc_html(apply_filters('woocommerce_checkout_must_be_logged_in_message', __('You must be logged in to checkout.', 'woocommerce')));
 	return;
 }
 
 ?>
 
-<form name="checkout" method="post" class="checkout woocommerce-checkout" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" enctype="multipart/form-data" aria-label="<?php echo esc_attr__( 'Checkout', 'woocommerce' ); ?>">
+<form name="checkout" method="post" class="checkout woocommerce-checkout" action="<?php echo esc_url(wc_get_checkout_url()); ?>" enctype="multipart/form-data">
     
     <div class="checkout-layout">
         <div class="checkout-main">
             <div class="checkout-steps-wrapper">
+                <!-- Progress Indicator -->
                 <div class="checkout-progress">
-                    <div class="step-indicator" id="step-indicator-1">
+                    <div class="step-indicator active" id="step-indicator-1">
                         <span class="step-number">1</span>
                         <span class="step-title">Application</span>
                     </div>
@@ -50,11 +49,12 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                         <span class="step-number">3</span>
                         <span class="step-title">Submit Order</span>
                     </div>
-                    <div class="checkout-progress-bar"></div>
                 </div>
 
+                <!-- Step 1: Application -->
                 <div id="checkout-step-1" class="checkout-step">
-                    <h2>Application</h2>
+                    <h2>Applicant Info</h2>
+                    <?php do_action('woocommerce_checkout_before_customer_details'); ?>
                     <div class="d-flex flex-column">
                         <div class="applicant-information clearfix">
                             <?php custom_checkout_fields($checkout); ?>
@@ -75,8 +75,10 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                     </div>
                 </div>
 
-                <div id="checkout-step-2" class="checkout-step">
+                <!-- Step 2: Delivery Address -->
+                <div id="checkout-step-2" class="checkout-step" style="display: none;">
                     <h2>Delivery Address</h2>
+                    <?php do_action('woocommerce_checkout_shipping'); ?>
                     <div class="d-flex flex-column">
                         <div class="delivery-address">
                             <?php 
@@ -96,38 +98,29 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
                     </div>
                 </div>
 
-                <div id="checkout-step-3" class="checkout-step">
+                <!-- Step 3: Submit Order -->
+                <div id="checkout-step-3" class="checkout-step" style="display: none;">
                     <h2>Submit Order</h2>
-                    <div class="d-flex flex-column">
-                        <div class="billing-notice">
-                            <p class="form-row">
-                                <i class="fas fa-info-circle"></i>
-                                <?php esc_html_e('Note: Billing address will be same as shipping address', 'woocommerce'); ?>
-                            </p>
-                        </div>
-                        <div class="payment-section">
-                            <?php if (WC()->cart->needs_payment()) : ?>
-                                <div class="woocommerce-checkout-payment">
-                                    <?php 
-                                        WC()->payment_gateways()->get_available_payment_gateways();
-                                        woocommerce_get_template('checkout/payment.php', array(
-                                            'checkout' => WC()->checkout(),
-                                        ));
-                                    ?>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                        <div class="step-buttons">
-                            <button class="checkout-prev-step button">Back</button>
-                        </div>
+                    <?php do_action('woocommerce_checkout_before_order_review'); ?>
+                    <div id="order_review" class="woocommerce-checkout-review-order">
+                        <?php do_action('woocommerce_checkout_order_review'); ?>
+                    </div>
+                    <div class="step-buttons">
+                        <button class="checkout-prev-step button">Back</button>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Order Summary Sidebar -->
         <div class="checkout-sidebar">
             <div class="order-summary">
+                <div class="preloader-overlay" aria-hidden="true">
+                    <div class="loading-spinner"></div>
+                    <span class="screen-reader-text"><?php _e('Loading...', 'woocommerce'); ?></span>
+                </div>
                 <h3><?php esc_html_e('Order Summary', 'woocommerce'); ?></h3>
+                <?php do_action('woocommerce_checkout_before_order_review'); ?>
                 <div class="order-summary-content">
                     <div class="order-summary-item recipient-info">
                         <span><?php esc_html_e('Recipient:', 'woocommerce'); ?></span>
@@ -161,7 +154,7 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
     </div>
 </form>
 
-<?php do_action( 'woocommerce_after_checkout_form', $checkout ); ?>
+<?php do_action('woocommerce_after_checkout_form', $checkout); ?>
 
 
 

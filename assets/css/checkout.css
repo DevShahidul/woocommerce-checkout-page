@@ -404,6 +404,47 @@ a[role="button"] {
   height: 3.5rem;
 }
 
+/* Sidebar preloader style */
+.checkout-sidebar{
+  position: relative;
+}
+
+
+.preloader-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.8);
+  display: none;
+  z-index: 999;
+  transition: opacity 0.3s ease;
+}
+
+.preloader-overlay.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* End preloader style */
+
+
 @media screen and (max-width: 1366px) {
   .woocommerce-checkout {
     --order-review-wide: 25rem;

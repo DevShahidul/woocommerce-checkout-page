@@ -105,8 +105,6 @@ function custom_checkout_fields( $checkout = null ) {
     if (!$checkout) {
         $checkout = WC()->checkout;
     }
-    
-    echo '<h3>Applicant Info</h3>';
 
     // First Name
     woocommerce_form_field( 'applicant_first_name', array(
@@ -156,7 +154,7 @@ function passport_types($checkout = null) {
 
     <div class="passport-type-section">
         <h3><?php _e('Select your passport type?', 'woocommerce'); ?></h3>
-        <?php echo do_shortcode('[product_selector]'); ?>
+        <?php echo do_shortcode('[passport_type_selector]'); ?>
     </div>
     <?php
 

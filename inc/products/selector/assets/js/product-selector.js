@@ -1,191 +1,212 @@
 // js/product-selector.js
 jQuery(function($) {
    const $selector = $('#product-selector');
-   const $details = $('#product-details');
-   const $quantity = $('#product-quantity');
-   const $addButton = $('#add-to-cart-btn');
-   const $message = $('#cart-message');
-   const $selectedProduct = $('.selected-product');
-   const $stockStatus = $('.stock-status');
+   const $preloader = $('.checkout-sidebar .preloader-overlay');
+   let isProcessing = false;
+   
 
    // Handle product selection
    $selector.on('change', function() {
+        if(isProcessing) return;
+
        const $selected = $(this).find('option:selected');
        const productId = $(this).val();
 
-       if(productId){
+       
+       if(!productId){
+        $preloader.removeClass('active');
+        return;
+       }
+       
+       isProcessing = true;
+       // Show preloader
+       showPreloader();
+
         const price = $selected.data('price');
         const name = $selected.text();
 
-        // Update order summary front end
-        $('.order-summary-item.product-info').html(`
-            <span class="item-name">${name}</span>
-            <span class="item-price">
-                <span class="woocommerce-Price-amount amount">
-                ${price.toFixed(2)}
-                </span>
-            </span>
-            `
-        );
-        $('.woocommerce-Price-currencySymbol').first().text() + price.toFixed(2)
+        const emptyCart = () => {
+            return $.ajax({
+                url: wc_checkout_params.ajax_url,
+                type: 'POST',
+                data: { action: 'empty_cart' }
+            });
+        };
 
-        $.ajax({
-            url: wc_checkout_params.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'empty_cart'
-            },
-            success: function() {
-                // Add selected product with quantity 1
-                $.ajax({
-                    url: wc_checkout_params.ajax_url,
-                    type: 'POST',
-                    data: {
-                        action: 'add_single_product',
-                        product_id: productId
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            // Update order summary
-                            $.ajax({
-                                url: wc_checkout_params.ajax_url,
-                                type: 'POST',
-                                data: {
-                                    action: 'update_checkout_product',
-                                    product_id: productId
-                                },
-                                success: function(response) {
-                                    if (response.success) {
-                                        // Trigger WooCommerce to update checkout fragments
-                                        updateOrderSummary(response.data);
-                                        $(document.body).trigger('update_checkout');
-                                    }else {
-                                        console.log('Product update failed');
-                                    }
-                                },
-                                error: function() {
-                                    console.log('Error occurred. Please try again.');
-                                }
-                            });
-                        }
-                    },
-                    error: function() {
-                        console.log('AJAX request failed.');
-                    }
-                });
-            }
-        });
-       }
+        const addToCart = () => {
+            return $.ajax({
+                url: wc_checkout_params.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'woocommerce_add_to_cart',
+                    product_id: productId,
+                    quantity: 1
+                }
+            });
+        };
 
-       
-       
-    //    if (productId) {
-    //        const price = $selected.data('price');
-    //      //   const stock = $selected.data('stock');
-    //        const name = $selected.text();
+         // Execute sequence with proper cleanup
+         emptyCart()
+         .then(addToCart)
+         .then(response => {
+             if(response.error && response.product_url) {
+                 window.location = response.product_url;
+                 return;
+             }
+
+             $(document.body).trigger('update_checkout', {
+                 update_shipping_method: false
+             });
+
+             $('.order-summary-item.product-info').html(`
+                 <span class="item-name">${name}</span>
+                 <span class="item-price">
+                     <span class="woocommerce-Price-amount amount">
+                     ${price.toFixed(2)}
+                     </span>
+                 </span>
+             `);
+         })
+         .fail(error => {
+             console.error('Operation failed:', error);
+         })
+         .always(() => {
+             isProcessing = false;
+             hidePreloader();
+         });
            
 
-    //        $selectedProduct.html(`Selected: ${name}`);
-           
-    //        if (stock !== '') {
-    //            $stockStatus.html(`Stock available: ${stock}`);
-    //            $quantity.attr('max', stock);
-    //        } else {
-    //            $stockStatus.html('');
-    //            $quantity.removeAttr('max');
-    //        }
+        // $('.woocommerce-Price-currencySymbol').first().text() + price.toFixed(2)
 
-    //        $details.slideDown();
-    //    } else {
-    //        $details.slideUp();
-    //    }
+        // // Clear existing cart contents
+        // $.ajax({
+        //     url: wc_checkout_params.ajax_url,
+        //     type: 'POST',
+        //     data: {
+        //         action: 'empty_cart'
+        //     },
+        //     success: function() {
+        //         // Add new product to cart
+        //         $.ajax({
+        //             url: wc_checkout_params.ajax_url,
+        //             type: 'POST',
+        //             data: {
+        //                 action: 'woocommerce_add_to_cart',
+        //                 product_id: productId,
+        //                 quantity: 1
+        //             },
+        //             success: function(response) {
+        //                 if(response.error && response.product_url) {
+        //                     window.location = response.product_url;
+        //                     return;
+        //                 }
+
+        //                 // Trigger WooCommerce to update all fragments
+        //                 $(document.body).trigger('update_checkout', {
+        //                     update_shipping_method: false
+        //                 });
+
+        //                 // Update custom elements
+        //                 $('.order-summary-item.product-info').html(`
+        //                     <span class="item-name">${name}</span>
+        //                     <span class="item-price">
+        //                         <span class="woocommerce-Price-amount amount">
+        //                         ${price.toFixed(2)}
+        //                         </span>
+        //                     </span>
+        //                 `);
+        //             },
+        //             complete: function() {
+        //                 // Hide preloader after both operations
+        //                 hidePreloader();
+        //             },
+        //             error: function() {
+        //                 // Handle AJAX error
+        //                 hidePreloader();
+        //                 console.error('Add to cart failed');
+        //             }
+        //         });
+        //     },
+        //     error: function() {
+        //         // Handle empty cart error
+        //         hidePreloader();
+        //         console.error('Empty cart failed');
+        //     }
+        // });
+
    });
 
-    // Update order summary
-   function updateOrderSummary(productData) {
-        const $productInfo = $(".order-summary-item.product-info");
-        // Update product name
-        $productInfo.find('.item-name').text(productData.name);
+   function showPreloader() {
+    $('.order-summary').addClass('loading');
+    $('.preloader-overlay').addClass('active');
+   }
+
+   function hidePreloader() {
+    $('.order-summary').removeClass('loading');
+    $('.preloader-overlay').removeClass('active');
+   }
+
+//     // Update order summary
+//    function updateOrderSummary(productData) {
+//         const $productInfo = $(".order-summary-item.product-info");
         
-        // Update price with WooCommerce formatting
-        $('.item-price').html(productData.price_html);
+//         // Show loading state during update
+//         showPreloader();
         
-        // Update cart subtotal
-        $('.subtotal-amount .woocommerce-Price-amount').html(productData.price_html);
+//         // Update product name
+//         $productInfo.find('.item-name').text(productData.name);
+//         // Update price with WooCommerce formatting
+//         $('.item-price').html(productData.price_html);
+//         // Update cart subtotal
+//         $('.subtotal-amount .woocommerce-Price-amount').html(productData.price_html);
+//         // Optional: Update cart quantity
+//         $('.product-quantity').text('1');
+
+//         $.ajax({
+//             url: checkoutData.ajaxurl,
+//             type: 'POST',
+//             data: {
+//                 action: 'update_cart_totals',
+//                 nonce: checkoutData.nonce
+//             },
+//             success: function(response) {
+//                 if (response.success) {
+//                     $('.subtotal-amount').html(response.data.subtotal);
+//                     $('.total-amount').html(response.data.total);
+//                 }
+//             },
+//             complete: function() {
+//                 // Hide preloader after update
+//                 hidePreloader();
+//             },
+//             error: function() {
+//                 hidePreloader();
+//             }
+//         });
+//     }
+
+    // Handle WooCommerce fragments update
+    $(document.body).on('updated_checkout', function() {
+        if(!isProcessing) return;
+
+        // Update totals from WooCommerce data
+        const totals = wc_checkout_params.totals;
         
-        // Optional: Update cart quantity
-        $('.product-quantity').text('1');
+        $('.subtotal-amount .amount').html(totals.subtotal);
+        $('.total-amount .amount').html(totals.total);
+        $('.shipping-amount .amount').html(totals.shipping_total);
+        
+        // Update any custom fee displays
+        if(totals.fees) {
+            $('.fee-amount .amount').html(totals.fees);
+        }
+    });
 
-        $.ajax({
-            url: checkoutData.ajaxurl,
-            type: 'POST',
-            data: {
-                action: 'update_cart_totals',
-                nonce: checkoutData.nonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    $('.subtotal-amount').html(response.data.subtotal);
-                    $('.total-amount').html(response.data.total);
-                }
-            }
-        });
-    }
+     // Error handling for AJAX failures
+     $(document).ajaxError(function(event, jqxhr, settings, thrownError) {
+        isProcessing = false;
+        hidePreloader();
+        console.error('AJAX Error:', settings.url, thrownError);
+    });
 
-//    // Handle add to cart
-//    $addButton.on('click', function() {
-//        const productId = $selector.val();
-//        const quantity = $quantity.val();
-
-//        if (!productId) {
-//            showMessage('Please select a product.', 'error');
-//            return;
-//        }
-
-//        $addButton.prop('disabled', true).text('Adding...');
-
-//        $.ajax({
-//            url: ajax_object.ajax_url,
-//            type: 'POST',
-//            data: {
-//                action: 'add_to_cart_ajax',
-//                product_id: productId,
-//                quantity: quantity,
-//                nonce: ajax_object.nonce
-//            },
-//            success: function(response) {
-//                if (response.success) {
-//                    showMessage(response.message, 'success');
-                   
-//                    // Update cart count in header if it exists
-//                    $('.cart-count').text(response.cart_count);
-//                    $('.cart-total').html(response.cart_total);
-                   
-//                    // Reset form
-//                    $selector.val('');
-//                    $quantity.val(1);
-//                    $details.slideUp();
-//                } else {
-//                    showMessage(response.message, 'error');
-//                }
-//            },
-//            error: function() {
-//                showMessage('Error occurred. Please try again.', 'error');
-//            },
-//            complete: function() {
-//                $addButton.prop('disabled', false).text('Add to Cart');
-//            }
-//        });
-//    });
-
-//    // Helper function to show messages
-//    function showMessage(text, type) {
-//        $message
-//            .removeClass('success error')
-//            .addClass(type)
-//            .html(text)
-//            .fadeIn()
-//            .delay(3000)
-//            .fadeOut();
-//    }
 });

@@ -1,0 +1,70 @@
+Act as a senior WooCommerce developer with expertise in custom checkout customization. Create a solution that implements a 3-step checkout process using Elementor Pro, JavaScript/jQuery, WooCommerce hooks, and CSS, following these technical requirements:
+
+1. **Step Management:**
+- Implement step navigation using JavaScript with DOM manipulation
+- Create a progress indicator (3 steps) with CSS transitions
+- Use `sessionStorage` to preserve form data between steps
+- Add validation hooks using `woocommerce_checkout_fields` filter
+
+2. **Product Selection (Step 1):**
+- Create dynamic product dropdown using `WC_Product_Query`
+- Implement real-time cart updates using `wp_ajax_` calls
+- Add price calculation logic with `woocommerce_before_calculate_totals`
+- Use `wc_add_notice` for product selection feedback
+
+3. **Shipping Methods (Step 1):**
+- Modify shipping rates using `woocommerce_package_rates`
+- Implement custom rate labels with strikethrough pricing using CSS
+- Add government fee disclaimer with `woocommerce_review_order_before_submit`
+
+4. **Add-Ons System (Step 1):**
+- Create fee API endpoints using `woocommerce_cart_calculate_fees`
+- Implement AJAX add-on toggling with localStorage
+- Design card UI with CSS grid and flexbox
+
+5. **Address Management (Step 2-3):**
+- Reuse core address fields using `woocommerce_checkout_get_value`
+- Implement address cloning using `woocommerce_checkout_update_order_meta`
+- Create conditional field display with jQuery.toggle()
+
+6. **Payment Integration (Step 3):**
+- Maintain default gateway processing using `woocommerce_payment_complete`
+- Implement credit card validation with `woocommerce_credit_card_type`
+
+7. **Elementor Integration:**
+- Create custom widgets for form steps
+- Implement dynamic CSS classes for step transitions
+- Use Elementor's JS API for form interactions
+
+8. **Optimization Requirements:**
+- Implement debouncing for AJAX calls
+- Add WC Cart Fragments support
+- Create mobile-responsive layout with media queries
+- Include ARIA labels for accessibility
+
+# Provide complete code implementation with:
+- Custom PHP class for checkout extension
+- ES6 JavaScript module structure
+- WC Hook priority ordering
+- CSS BEM methodology
+- Elementor widget configuration
+- Error handling and validation
+- WP nonce verification
+
+# Include implementation notes about:
+- Session management
+- Tax calculation considerations
+- Plugin dependency handling
+- WC template overrides
+- Browser compatibility
+- Performance testing metrics"
+
+#important 
+- Make sure user can direct navigate on checkout page without select any product on cart
+
+#Comment
+- Make sure to Always include comments in your code
+- Do not delete comments unless they are no longer need
+
+
+

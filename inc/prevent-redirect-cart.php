@@ -53,8 +53,8 @@ function custom_woocommerce_session_management() {
 }
 
 // // Custom notices for empty cart scenarios
-// add_action('woocommerce_before_checkout_form', 'display_empty_cart_product_selector');
-// function display_empty_cart_product_selector() {
+// add_action('woocommerce_before_checkout_form', 'display_empty_cart_passport_type_selector');
+// function display_empty_cart_passport_type_selector() {
 //     if (WC()->cart->is_empty()) {
 //         // Display product selection dropdown
 //         woocommerce_product_dropdown();
