@@ -10,7 +10,8 @@ function hello_elementor_child_scripts() {
     if (is_checkout()) {
         wp_enqueue_script(
             'custom-checkout',
-            get_stylesheet_directory_uri() . '/assets/js/custom-checkout.js',
+            // get_stylesheet_directory_uri() . '/assets/js/custom-checkout.js',
+            get_stylesheet_directory_uri() . '/assets/js/checkout.js',
             array('jquery'),
             '1.0.0',
             true

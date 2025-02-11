@@ -280,19 +280,19 @@ function acf_optional_delivery_addons($checkout = null) {
                 $title = acf_esc_html( get_sub_field('title') );
                 $description = acf_esc_html( get_sub_field('description') );
                 $price = number_format( get_sub_field('price'), 2);
-                $addon_id = sanitize_title($title);
+                $addon_id = get_sub_field('addon_id');
             
             ?>
 			<div class="addon-card">
 				<h4 class="title"><?php echo $title; ?></h4>
                 <input type="checkbox" data-addon-title="<?php echo $title; ?>" data-description="<?php echo $description; ?>" 
-                id="<?php echo $title; ?>"
+                id="<?php echo $addon_id; ?>"
                 data-addon-price="<?php echo $price; ?>" class="addon-checkbox" />
 				<p class="description"><?php echo $description; ?></p>
 				<hr class="separator">
 				<div class="action-row">
 					<span class="price" data-addon-price="" >$<?php echo $price; ?></span>
-					<label for="<?php echo $title; ?>" data-addon-id="<?php esc_attr($addon_id); ?>" data-addon-price="<?php esc_attr($price); ?>" data-description="<?php echo $description; ?>" type="button" class="button">Add</label>
+					<label for="<?php echo $addon_id; ?>" data-addon-id="<?php esc_attr($addon_id); ?>" data-addon-price="<?php esc_attr($price); ?>" data-description="<?php echo $description; ?>" type="button" class="button addon-button">Add</label>
 				</div>
 			</div>
 			<?php endwhile; ?>
@@ -612,6 +612,32 @@ function update_cart_totals_with_addons() {
     ));
 }
 
+// Ajax Add proper nonce verification
+add_action('wp_ajax_update_addons', 'handle_addon_updates');
+add_action('wp_ajax_nopriv_update_addons', 'handle_addon_updates');
+
+function handle_addon_updates() {
+    // Verify both nonce parameters
+    if (!check_ajax_referer('checkout_nonce', 'nonce', false) || 
+        !check_ajax_referer('checkout_nonce', '_wpnonce', false)) {
+        wp_send_json_error('Invalid nonce', 403);
+    }
+
+    $addon_id = sanitize_text_field($_POST['addon_id']);
+    $price = floatval($_POST['addon_price']);
+    $is_checked = filter_var($_POST['is_checked'], FILTER_VALIDATE_BOOLEAN);
+
+    if($is_checked) {
+        WC()->cart->add_fee(sanitize_text_field($_POST['addon_title']), $price);
+    } else {
+        // Remove fee logic here
+    }
+
+    wp_send_json_success([
+        'total' => WC()->cart->get_total('edit')
+    ]);
+}
+
 // Add combined fees to cart
 add_action('woocommerce_cart_calculate_fees', 'add_combined_fees');
 function add_combined_fees() {
@@ -811,5 +837,11 @@ function add_order_received_styles() {
         <?php
     }
 }
+
+// When enqueuing your script
+wp_localize_script('checkout-js', 'checkoutData', [
+    'ajaxurl' => admin_url('admin-ajax.php'),
+    'nonce' => wp_create_nonce('checkout_nonce')
+]);
 
 
