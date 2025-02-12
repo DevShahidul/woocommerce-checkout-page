@@ -1,4 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // $('.woocommerce select').selectric({
+    //     maxHeight: 200
+    // });
+    $('.woocommerce select').select2();
+
+    
     const $ = jQuery;
     const checkout = {
         currentStep: 1,

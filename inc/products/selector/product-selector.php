@@ -12,9 +12,10 @@ function passport_type_selector_shortcode() {
 
     ob_start();
     ?>
-    <div class="product-selector-wrapper">
-        <select name="passport_type_selector" id="product-selector" class="product-dropdown">
-            <option value=""><?php _e('Select your passport type', 'woocommerce'); ?></option>
+    <div class="product-selector-wrapper form-row form-row-wide validate-required">
+        <label for="product-selector"><?php _e('Passport type', 'woocommerce'); ?></label>
+        <select name="passport_type_selector" id="product-selector" class="product-dropdown woocommerce-input-wrapper">
+            
             <?php foreach ($products as $product) : ?>
                 <option value="<?php echo esc_attr($product->get_id()); ?>" 
                         data-price="<?php echo esc_attr($product->get_price()); ?>"
@@ -38,18 +39,6 @@ function ajax_empty_cart() {
     wp_send_json_success();
 }
 
-// // Add single product via AJAX
-// add_action('wp_ajax_add_single_product', 'ajax_add_single_product');
-// add_action('wp_ajax_nopriv_add_single_product', 'ajax_add_single_product');
-// function ajax_add_single_product() {
-//     $product_id = intval($_POST['product_id']);
-    
-//     // Ensure only one item is added
-//     WC()->cart->empty_cart();
-//     WC()->cart->add_to_cart($product_id, 1);
-    
-//     wp_send_json_success();
-// }
 
 // Add AJAX handler for adding to cart
 function handle_ajax_add_to_cart() {
@@ -112,22 +101,6 @@ function custom_order_summary_fragments($fragments) {
 }
 
 
-// // Add AJAX handler for update checkout order summary
-// add_action('wp_ajax_update_checkout_product', 'ajax_update_checkout_product');
-// add_action('wp_ajax_nopriv_update_checkout_product', 'ajax_update_checkout_product');
-// function ajax_update_checkout_product() {
-//     // Sanitize and validate product ID
-//     $product_id = intval($_POST['product_id']);
-    
-//     // Empty existing cart
-//     WC()->cart->empty_cart();
-    
-//     // Add new product
-//     WC()->cart->add_to_cart($product_id, 1);
-    
-//     // Send success response
-//     wp_send_json_success();
-// }
 
 add_action('wp_ajax_get_product_details', 'ajax_get_product_details');
 add_action('wp_ajax_nopriv_get_product_details', 'ajax_get_product_details');

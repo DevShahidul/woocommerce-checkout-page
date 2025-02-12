@@ -9,15 +9,39 @@ add_action('wp_enqueue_scripts', 'hello_elementor_child_scripts');
 function hello_elementor_child_scripts() {
     if (is_checkout()) {
         wp_enqueue_script(
+            'selectric',
+            get_stylesheet_directory_uri() . '/assets/js/jquery.selectric.min.js',
+            array('jquery'),
+            '1.13.0',
+            true
+        );
+        wp_enqueue_script(
+            'select2',
+            'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
+            array('jquery'),
+            '4.1.0',
+            true
+        );
+        wp_enqueue_script(
             'custom-checkout',
-            // get_stylesheet_directory_uri() . '/assets/js/custom-checkout.js',
-            get_stylesheet_directory_uri() . '/assets/js/checkout.js',
+            get_stylesheet_directory_uri() . '/assets/js/custom-checkout.js',
+            // get_stylesheet_directory_uri() . '/assets/js/checkout.js',
             array('jquery'),
             '1.0.0',
             true
         );
 
         // Child style
+        wp_enqueue_style( 
+            'selectric', 
+            get_stylesheet_directory_uri() . '/assets/css/selectric.css' 
+        );
+
+        wp_enqueue_style( 
+            'select2', 
+            'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css' 
+        );
+
         wp_enqueue_style( 
             'custom-checkout', 
             get_stylesheet_directory_uri() . '/assets/css/checkout.css' 

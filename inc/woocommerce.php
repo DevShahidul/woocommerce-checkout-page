@@ -225,9 +225,7 @@ function acf_travel_information_fields( $checkout = null ) {
 
     // Get the field object instead of just the value
     $field = get_field_object('where_traveling', 'option');
-    
-    echo '<h3>Travel Information</h3>';
-    
+        
     // Debug information
     // echo '<!-- Debug Field: ';
     // var_dump($field);
@@ -285,14 +283,23 @@ function acf_optional_delivery_addons($checkout = null) {
             ?>
 			<div class="addon-card">
 				<h4 class="title"><?php echo $title; ?></h4>
-                <input type="checkbox" data-addon-title="<?php echo $title; ?>" data-description="<?php echo $description; ?>" 
-                id="<?php echo $addon_id; ?>"
-                data-addon-price="<?php echo $price; ?>" class="addon-checkbox" />
+                <input type="checkbox" 
+                    data-addon-id="<?php echo esc_attr($addon_id); ?>"
+                    data-addon-title="<?php echo $title; ?>" 
+                    data-addon-price="<?php echo $price; ?>" 
+                    data-description="<?php echo $description; ?>" 
+                    id="<?php echo esc_attr($addon_id); ?>"
+                    class="addon-checkbox" />
 				<p class="description"><?php echo $description; ?></p>
 				<hr class="separator">
 				<div class="action-row">
 					<span class="price" data-addon-price="" >$<?php echo $price; ?></span>
-					<label for="<?php echo $addon_id; ?>" data-addon-id="<?php esc_attr($addon_id); ?>" data-addon-price="<?php esc_attr($price); ?>" data-description="<?php echo $description; ?>" type="button" class="button addon-button">Add</label>
+					<label for="<?php echo esc_attr($addon_id); ?>" 
+                        data-addon-id="<?php echo esc_attr($addon_id); ?>" 
+                        data-addon-price="<?php echo $price; ?>" 
+                        data-description="<?php echo $description; ?>" 
+                        type="button" 
+                        class="button addon-button">Add</label>
 				</div>
 			</div>
 			<?php endwhile; ?>

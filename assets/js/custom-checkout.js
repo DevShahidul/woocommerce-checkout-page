@@ -1,4 +1,9 @@
 jQuery(document).ready(function($) {
+    // $('.woocommerce select').selectric({
+    //     maxHeight: 200
+    // });
+    $('.woocommerce select').select2();
+
     var currentStep = 1;
     var totalSteps = 3;
 
